@@ -1,0 +1,17 @@
+{
+  "name": "linter-metascript",
+  "main": "./lib/init",
+  "linter-package": true,
+  "activationEvents": [],
+  "version": "0.0.1",
+  "description": "Linter plugin for Metascript",
+  "repository": "https://github.com/massimiliano-mantione/linter-metascript.git",
+  "license": "ISC",
+  "engines": {
+    "atom": ">0.50.0"
+  },
+  "dependencies": {
+    "meta-script": "0.0.45",
+    "mjs-check": "~0.0.2"
+  }
+}
