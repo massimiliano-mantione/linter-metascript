@@ -20,10 +20,6 @@ class LinterMetascript extends Linter
   # list/tuple of strings. Names should be all lowercase.
   @syntax: ['source.metascript']
 
-  # A string, list, tuple or callable that returns a string, list or tuple,
-  # containing the command line (with arguments) used to lint.
-  cmd: ['mjs', 'check']
-
   linterName: 'metascript'
 
   regex:
@@ -35,6 +31,7 @@ class LinterMetascript extends Linter
     super(editor)
     file = editor.getBuffer().getPath()
     @cwd = packageRootOf file
+    @cmd = ['mjs', 'check', '--name', file]
     atom.config.observe 'linter-metascript.mjsExecutablePath', @formatShellCmd
 
   formatShellCmd: =>
