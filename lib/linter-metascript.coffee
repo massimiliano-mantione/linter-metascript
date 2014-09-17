@@ -26,9 +26,8 @@ class LinterMetascript extends Linter
 
   linterName: 'metascript'
 
-  # A regex pattern used to extract information from the executable's output.
   regex:
-    '.+?\((?<line>[0-9]+),(?<col>[0-9]+)\): , (?<message>.+)'
+    '.+?\\((?<line>[0-9]+),(?<col>[0-9]+)\\): (?<message>.+)'
 
   isNodeExecutable: no
 
