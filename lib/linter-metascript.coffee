@@ -2,8 +2,19 @@ linterPath = atom.packages.getLoadedPackage("linter").path
 Linter = require "#{linterPath}/lib/linter"
 {warn} = require "#{linterPath}/lib/utils"
 
-# Most of this has bin copied from the linter-jshint atom package.
+packageRootOf = (filename) ->
+  {dirname, join} = require 'path'
+  {existsSync} = require 'fs'
+  prev = undefined
+  cur = dir = dirname filename
+  while cur != prev
+    if (existsSync(join(cur, 'package.json')))
+      return cur
+    prev = cur
+    cur = dirname cur
+  dir
 
+# Most of this has bin copied from the linter-jshint atom package.
 class LinterMetascript extends Linter
   # The syntax that the linter handles. May be a string or
   # list/tuple of strings. Names should be all lowercase.
@@ -23,7 +34,8 @@ class LinterMetascript extends Linter
 
   constructor: (editor) ->
     super(editor)
-
+    file = editor.getBuffer().getPath()
+    @cwd = packageRootOf file
     atom.config.observe 'linter-metascript.mjsExecutablePath', @formatShellCmd
 
   formatShellCmd: =>
