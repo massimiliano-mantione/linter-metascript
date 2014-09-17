@@ -37,12 +37,6 @@ class LinterMetascript extends Linter
   formatShellCmd: =>
     mjsExecutablePath = atom.config.get 'linter-metascript.mjsExecutablePath'
     @executablePath = "#{mjsExecutablePath}"
-    console.log 'metascript link exec path: ' + @executablePath
-
-  formatMessage: (match) ->
-    msg = match.message || "Regex does not match lint output"
-    console.log 'linter message: ' + msg
-    msg
 
   destroy: ->
     atom.config.unobserve 'linter-metascript.mjsExecutablePath'
