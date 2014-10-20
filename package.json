@@ -3,7 +3,7 @@
   "main": "./lib/init",
   "linter-package": true,
   "activationEvents": [],
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Linter plugin for Metascript",
   "repository": "https://github.com/metascript/linter-metascript.git",
   "license": "ISC",
