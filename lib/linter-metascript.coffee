@@ -1,12 +1,12 @@
 path = require 'path'
 {CompositeDisposable} = require 'atom'
-{metaScript} = require 'meta-script'
+metaScript = require 'meta-script'
 
 makeRange = (location) ->
-  lineStart = location.line
+  lineStart = location.line - 1
   colStart = location.column
-  lineEnd = location.line
-  colEnd = location.column + 1
+  lineEnd = location.lineTo - 1
+  colEnd = location.columnTo
   [ [lineStart, colStart], [lineEnd, colEnd] ]
 
 makeError = (filePath, range, message) ->
@@ -21,12 +21,12 @@ checkFile = (filePath, fileText) ->
     compiler = mjs.compilerFromString(fileText, filePath)
     ast = compiler.produceAst()
     compiler.errors.map (e) ->
-      makeError(filePath, makeRange(e.location), e.message)
+      makeError(filePath, makeRange(e), e.message)
   catch ex
     console.warn '[Linter-Metascript] error while linting file'
     console.warn ex.message
     console.warn ex.stack
-    [makeError(filePath, [[1, 1], [1, 1]], 'Error while linting: ' + ex.message)]
+    [makeError(filePath, [[1, 0], [1, 0]], 'Error while linting: ' + ex.message)]
 
 module.exports =
   config:
@@ -48,14 +48,12 @@ module.exports =
     @subscriptions.dispose()
 
   provideLinter: ->
-    console.log('mjs lint providing linter')
     provider =
       name: 'Metascript Linter'
-      grammarScopes: ['source.mjs']
+      grammarScopes: ['source.metascript']
       scope: 'file'
       lintOnFly: true
       lint: (textEditor) ->
-        console.log('mjs lint: ', filePath)
         filePath = textEditor.getPath()
         fileText = textEditor.getText()
         checkFile(filePath, fileText)
