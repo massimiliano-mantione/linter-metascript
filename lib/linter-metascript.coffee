@@ -1,44 +1,61 @@
-linterPath = atom.packages.getLoadedPackage("linter").path
-Linter = require "#{linterPath}/lib/linter"
-{warn} = require "#{linterPath}/lib/utils"
+path = require 'path'
+{CompositeDisposable} = require 'atom'
+{metaScript} = require 'meta-script'
 
-packageRootOf = (filename) ->
-  {dirname, join} = require 'path'
-  {existsSync} = require 'fs'
-  prev = undefined
-  cur = dir = dirname filename
-  while cur != prev
-    if (existsSync(join(cur, 'package.json')))
-      return cur
-    prev = cur
-    cur = dirname cur
-  dir
+makeRange = (location) ->
+  lineStart = location.line
+  colStart = location.column
+  lineEnd = location.line
+  colEnd = location.column + 1
+  [ [lineStart, colStart], [lineEnd, colEnd] ]
 
-# Most of this has bin copied from the linter-jshint atom package.
-class LinterMetascript extends Linter
-  # The syntax that the linter handles. May be a string or
-  # list/tuple of strings. Names should be all lowercase.
-  @syntax: ['source.metascript']
+makeError = (filePath, range, message) ->
+  type: 'error'
+  filePath: filePath
+  range: range
+  text: message
 
-  linterName: 'metascript'
+checkFile = (filePath, fileText) ->
+  try
+    mjs = metaScript()
+    compiler = mjs.compilerFromString(fileText, filePath)
+    ast = compiler.produceAst()
+    compiler.errors.map (e) ->
+      makeError(filePath, makeRange(e.location), e.message)
+  catch ex
+    console.warn '[Linter-Metascript] error while linting file'
+    console.warn ex.message
+    console.warn ex.stack
+    [makeError(filePath, [[1, 1], [1, 1]], 'Error while linting: ' + ex.message)]
 
-  regex:
-    '.+?\\((?<line>[0-9]+),(?<col>[0-9]+)\\): (?<message>.+)'
+module.exports =
+  config:
+    mjsExecutablePath:
+      type: 'string'
+      default: path.join __dirname, '..', 'node_modules', 'meta-script', 'bin'
 
-  isNodeExecutable: no
+  activate: ->
+    require('atom-package-deps').install('linter-metascript')
+    console.log 'activate linter-metascript'
+    @executablePath = atom.config.get 'linter-metascript.mjsExecutablePath'
+    @subscriptions = new CompositeDisposable
+    @subscriptions.add atom.config.observe \
+     'linter-shellcheck.shellcheckExecutablePath',
+      (executablePath) =>
+        @executablePath = executablePath
 
-  constructor: (editor) ->
-    super(editor)
-    file = editor.getBuffer().getPath()
-    @cwd = packageRootOf file
-    @cmd = ['mjs', 'check', '--name', file]
-    atom.config.observe 'linter-metascript.mjsExecutablePath', @formatShellCmd
+  deactivate: ->
+    @subscriptions.dispose()
 
-  formatShellCmd: =>
-    mjsExecutablePath = atom.config.get 'linter-metascript.mjsExecutablePath'
-    @executablePath = "#{mjsExecutablePath}"
-
-  destroy: ->
-    atom.config.unobserve 'linter-metascript.mjsExecutablePath'
-
-module.exports = LinterMetascript
+  provideLinter: ->
+    console.log('mjs lint providing linter')
+    provider =
+      name: 'Metascript Linter'
+      grammarScopes: ['source.mjs']
+      scope: 'file'
+      lintOnFly: true
+      lint: (textEditor) ->
+        console.log('mjs lint: ', filePath)
+        filePath = textEditor.getPath()
+        fileText = textEditor.getText()
+        checkFile(filePath, fileText)
