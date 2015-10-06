@@ -2,7 +2,7 @@
   "name": "linter-metascript",
   "main": "./lib/linter-metascript",
   "activationCommands": [],
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Linter plugin for Metascript",
   "repository": "https://github.com/metascript/linter-metascript.git",
   "license": "ISC",
